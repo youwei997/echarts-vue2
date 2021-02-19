@@ -200,7 +200,5 @@ export default {
 </script>
 
 <style lang="less" scoped>
-.chart {
-  border-radius: 20px;
-}
+
 </style>

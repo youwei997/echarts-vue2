@@ -1,13 +1,24 @@
 <template>
-
+  <div class="page">
+    <Rank></Rank>
+  </div>
 </template>
 
 <script>
+import Rank from '@/components/Rank'
 export default {
-name: "PankPage"
+  data () {
+    return {
+    }
+  },
+
+  components: {
+    Rank
+  },
+
+  methods: {}
 }
 </script>
 
 <style scoped>
-
 </style>
