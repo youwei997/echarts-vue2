@@ -4,13 +4,9 @@
   </div>
 </template>
 
-<style lang="less">
-
-</style>
+<style lang="less"></style>
 <script>
 export default {
-  created() {
-  
-  }
-}
+  created() {},
+};
 </script>

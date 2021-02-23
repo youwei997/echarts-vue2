@@ -8,42 +8,57 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
+import {getThemeValue} from "@/utils/theme_utils";
 export default {
   data() {
     return {
       chartInstance: null,
       allData: null, //从服务器获取的所有数据
       chartIndex: 0, //当前展示图表下标，第一次显示第0个图表，左右箭头切换
-      titleFontSize:0
+      titleFontSize: 0,
     };
   },
   computed: {
+    ...mapState(["theme"]),
     catName() {
       if (!this.allData) {
         return "";
       }
       return this.allData[this.chartIndex].name;
     },
-    comStyle(){
+    comStyle() {
       return {
-        fontSize:this.titleFontSize + 'px'
-      }
-    }
+        fontSize: this.titleFontSize + "px",
+        color:getThemeValue(this.theme).titleColor
+      };
+    },
+  },
+  created() {
+    //在组件创建成功后，进行回调函数的注册
+    this.$socket.registerCallBack("hotData", this.getData);
   },
   mounted() {
     this.initChart(); //参数图表
-    this.getData(); //获取数据
+    // this.getData(); //获取数据
+    this.$socket.send({
+      action: "getData",
+      socketType: "hotData",
+      chartName: "hotproduct",
+      value: "",
+    });
     window.addEventListener("resize", this.screenAdapter);
     this.screenAdapter(); //第一次主动调用屏幕适配
   },
   destroyed() {
     window.removeEventListener("resize", this.screenAdapter); //组件卸载后取消监听
+    this.$socket.unRegisterCallBack("hotData");
   },
   components: {},
 
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.hot_chart, "chalk");
+      this.chartInstance = this.$echarts.init(this.$refs.hot_chart, this.theme);
       const initOption = {
         title: {
           text: "▎ 热销商品的占比",
@@ -95,9 +110,9 @@ export default {
       };
       this.chartInstance.setOption(initOption);
     },
-    async getData() {
+    async getData(data) {
       //对allData进行赋值
-      const { data } = await this.$axios("hotproduct");
+      // const { data } = await this.$axios("hotproduct");
       this.allData = data;
       console.log(this.allData);
       this.updateChart(); //获取到数据，更新图表
@@ -136,12 +151,12 @@ export default {
           },
         },
         legend: {
-          itemWidth: this.titleFontSize / 2,
-          itemHeight: this.titleFontSize / 2,
+          itemWidth: this.titleFontSize,
+          itemHeight: this.titleFontSize,
           itemGap: this.titleFontSize / 2,
-          textStyle:{
-            fontSize:this.titleFontSize /2,
-          }
+          textStyle: {
+            fontSize: this.titleFontSize / 2,
+          },
         },
         series: [
           {
@@ -168,6 +183,15 @@ export default {
         this.chartIndex = 0;
       }
       this.updateChart();
+    },
+  },
+  watch: {
+    theme() {
+      console.log("主题切换");
+      this.chartInstance.dispose(); //销毁当前图表
+      this.initChart(); //重新以最新主题名称初始化图表对象
+      this.screenAdapter(); //完成屏幕适配
+      this.updateChart(); //更新图表展示
     },
   },
 };

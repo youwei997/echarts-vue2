@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
   data() {
     return {
@@ -15,21 +16,35 @@ export default {
       // titleFontSize:null
     };
   },
+  created() {
+    //在组件创建成功后，进行回调函数的注册
+    this.$socket.registerCallBack("stockData", this.getData);
+  },
   mounted() {
     this.initChart(); //参数图表
-    this.getData(); //获取数据
+    // this.getData(); //获取数据
+    this.$socket.send({
+      action: "getData",
+      socketType: "stockData",
+      chartName: "stock",
+      value: "",
+    });
     window.addEventListener("resize", this.screenAdapter);
     this.screenAdapter(); //第一次主动调用屏幕适配
   },
   destroyed() {
     window.removeEventListener("resize", this.screenAdapter); //组件卸载后取消监听
     clearInterval(this.timerId);
+    this.$socket.unRegisterCallBack("stockData");
   },
   components: {},
 
   methods: {
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.stock_chart, "chalk");
+      this.chartInstance = this.$echarts.init(
+        this.$refs.stock_chart,
+        this.theme
+      );
       const initOption = {
         title: {
           text: "▎库存和销量分析",
@@ -46,9 +61,9 @@ export default {
         this.startInterval();
       });
     },
-    async getData() {
+    async getData(data) {
       //对allData进行赋值
-      const { data } = await this.$axios("stock");
+      // const { data } = await this.$axios("stock");
       console.log(data);
       this.allData = data;
       this.updateChart(); //获取到数据，更新图表
@@ -77,7 +92,7 @@ export default {
       const seriesArr = showData.map((item, index) => {
         return {
           type: "pie",
-          radius: [110, 100],
+          // radius: [110, 100],
           center: centerArr[index],
           hoverAnimation: false,
           labelLine: {
@@ -90,7 +105,7 @@ export default {
           data: [
             {
               value: item.sales,
-              name: item.name + "\n" + item.sales,
+              name: item.name + "\n\n" + item.sales,
               itemStyle: {
                 color: new this.$echarts.graphic.LinearGradient(0, 1, 0, 0, [
                   {
@@ -119,7 +134,7 @@ export default {
     screenAdapter() {
       //屏幕适配，如果屏幕改变，图表相关的样式也改变
       const titleFontSize = (this.$refs.stock_chart.offsetWidth / 100) * 3.6;
-      const innerRadius = titleFontSize * 2;
+      const innerRadius = titleFontSize * 3;
       const outterRadius = innerRadius * 1.125;
       // console.log(innerRadius,outterRadius);
       const adapterOption = {
@@ -180,6 +195,18 @@ export default {
         }
         this.updateChart();
       }, 2000);
+    },
+  },
+  computed: {
+    ...mapState(["theme"]),
+  },
+  watch: {
+    theme() {
+      console.log("主题切换");
+      this.chartInstance.dispose(); //销毁当前图表
+      this.initChart(); //重新以最新主题名称初始化图表对象
+      this.screenAdapter(); //完成屏幕适配
+      this.updateChart(); //更新图表展示
     },
   },
 };

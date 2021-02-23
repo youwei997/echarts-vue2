@@ -7,6 +7,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 export default {
   data() {
     return {
@@ -17,9 +18,19 @@ export default {
       timerId: null, //定时器id，用于清除定时器
     };
   },
+  created() {
+    //在组件创建成功后，进行回调函数的注册
+    this.$socket.registerCallBack("sellerData", this.getData);
+  },
   mounted() {
     this.initChart();
-    this.getData();
+    // this.getData();
+    this.$socket.send({
+      action: "getData",
+      socketType: "sellerData",
+      chartName: "seller",
+      value: "",
+    });
     this.screenAdapter(); //页面加载完，主动进行屏幕适配
 
     window.addEventListener("resize", this.screenAdapter);
@@ -30,11 +41,15 @@ export default {
     // console.log("组件销毁时，清空定时器");
     clearInterval(this.timerId);
     window.removeEventListener("resize", this.screenAdapter); //组件销毁时，取消监听
+    this.$socket.unRegisterCallBack("sellerData");
   },
   methods: {
     //初始化echartInstance对象
     initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.seller_chart, "chalk");
+      this.chartInstance = this.$echarts.init(
+        this.$refs.seller_chart,
+        this.theme
+      );
       const initOption = {
         title: {
           text: "▎商家销售统计",
@@ -108,9 +123,9 @@ export default {
       });
     },
     //获取服务器数据
-    async getData() {
-      let { data: ret } = await this.$axios.get("seller");
-      this.allData = ret;
+    async getData(data) {
+      // let { data} = await this.$axios.get("seller");
+      this.allData = data;
       //对数组进行排序
       this.allData.sort((a, b) => {
         return a.value - b.value; //从小到大排序
@@ -196,9 +211,19 @@ export default {
       this.chartInstance.resize();
     },
   },
+  computed: {
+    ...mapState(["theme"]),
+  },
+  watch: {
+    theme() {
+      console.log("主题切换");
+      this.chartInstance.dispose(); //销毁当前图表
+      this.initChart(); //重新以最新主题名称初始化图表对象
+      this.screenAdapter(); //完成屏幕适配
+      this.updateChart(); //更新图表展示
+    },
+  },
 };
 </script>
 
-<style lang="less" scoped>
-
-</style>
+<style lang="less" scoped></style>
