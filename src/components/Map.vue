@@ -41,15 +41,13 @@ export default {
 
   methods: {
     async initChart() {
-      this.chartInstance = this.$echarts.init(this.$refs.map_chart,this.theme );
+      this.chartInstance = this.$echarts.init(this.$refs.map_chart, this.theme);
       //获取中国矢量地图数据
       //http://localhost:8099/static/map/china.json
       //由于现在获取的地图矢量数据不是在koa后台，所有不能使用this.$axios(因为在main.js配置了默认请求url)
       // let res = await fetch('http://localhost:8099/static/map/china.json'); //使用fetch,不用引入axios
       // res = await res.json()
-      const res = await axios.get(
-        "http://localhost:8099/static/map/china.json"
-      );
+      const res = await axios.get(location.origin + "/static/map/china.json");
       // console.log(res)
       this.$echarts.registerMap("chinaMap", res.data);
       //第二个参数是包含UTF8Encoding,features,type的对象。使用axios需要.data,fetch直接使用res
@@ -102,9 +100,8 @@ export default {
             console.log("点击省份不请求数据");
             return;
           }
-          const res = await axios.get(
-            "http://localhost:8099" + provinceInfo.path
-          );
+          const res = await axios.get(location.origin + provinceInfo.path);
+          console.log(res);
           this.mapData[provinceInfo.key] = res.data;
           // console.log(this.mapData)
           // console.log(res)
