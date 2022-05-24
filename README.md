@@ -3,13 +3,14 @@
 ## 一、技术栈
 
 该项目主要使用 `Vue`搭配`Echarts`采用组件化的方式开发完成,此外项目中陆续使用有
+
 - VueRouter
 - VueX
 - WebSocket
 - axios/fetch
 - vue-cli
 - ES6
-- less 
+- less
 
 ## 二、运行效果截图
 
@@ -46,5 +47,5 @@
 ![dark](./data/trend.png)
 
 ## 三、演示地址
-### 借用@penggang-home 大佬的地址（侵删）
-### [点击预览](http://120.53.120.229:9989)
+
+### [点击预览](http://82.157.150.149/)
